@@ -236,6 +236,20 @@ smallStep (Catch e y n, acc) =
     Just (e', acc') -> Just (Catch e' y n, acc')
     _ -> Nothing
 
+smallStep (Var x, acc) = Nothing
+smallStep (Lam x e, acc) = Nothing
+smallStep (App (Lam x e) v, acc)
+  | isValue v = Just (subst x v e, acc)
+smallStep (App e1 e2, acc)
+  | not (isValue e1) =
+    case smallStep (e1, acc) of
+      Just (e1', acc') -> Just (App e1' e2, acc')
+      _ -> Nothing
+  | otherwise =
+    case smallStep (e2, acc) of
+      Just (e2', acc') -> Just (App e1 e2', acc')
+      _ -> Nothing
+smallStep (_, _) = Nothing
 
 
 steps :: (Expr, Expr) -> [(Expr, Expr)]
